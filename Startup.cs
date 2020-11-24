@@ -36,6 +36,7 @@ namespace Certificate_Example
                     {
                         OnCertificateValidated = (context) =>
                         {
+                            context.Request.Headers.ToList().ForEach(x => Console.WriteLine($"{x.Key} - {x.Value}"));
                             var certificate = context.ClientCertificate ?? new X509Certificate2(System.Convert.FromBase64String(context.Request.Headers["X-ARR-ClientCert"]));
                             if (certificate != null)
                             {
