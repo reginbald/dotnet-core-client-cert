@@ -32,13 +32,16 @@ namespace Certificate_Example
                 .AddCertificate(options => // Adds support for client certificate validation.
                 {
                     options.RevocationMode = X509RevocationMode.NoCheck;
+                    options.AllowedCertificateTypes = CertificateTypes.All;
+                    options.ValidateCertificateUse = false;
+                    options.ValidateValidityPeriod = false;
                     options.Events = new CertificateAuthenticationEvents
                     {
                         OnCertificateValidated = (context) =>
                         {
                             context.Request.Headers.ToList().ForEach(x => Console.WriteLine($"{x.Key} - {x.Value}"));
                             var certificate = context.ClientCertificate ?? new X509Certificate2(System.Convert.FromBase64String(context.Request.Headers["X-ARR-ClientCert"]));
-                            if (certificate != null)
+                            if (true)
                             {
                                 context.Success();
                             }
@@ -49,6 +52,11 @@ namespace Certificate_Example
 
                             return Task.CompletedTask;
                         },
+                        OnAuthenticationFailed = (context) =>
+                        {
+                            Console.WriteLine(context.Exception.Message);
+                            return Task.CompletedTask;
+                        }
                     };
                 });
             services.AddSwaggerGen(c =>
@@ -77,6 +85,7 @@ namespace Certificate_Example
 
             app.UseRouting();
 
+            app.UseCertificateForwarding();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
